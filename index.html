@@ -6,19 +6,43 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="start-screen">
-        <h1>Змейка</h1>
-        <select id="level-select">
-            <option value="1">Уровень 1 - Змейка</option>
-            <option value="2">Уровень 2 - Дракон</option>
-        </select>
-        <select id="controls-select">
-            <option value="keyboard">Клавиатура</option>
-            <option value="gamepad">Геймпад</option>
-            <option value="touch">Сенсорное управление</option>
-        </select>
-        <button id="start-btn">Начать игру</button>
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+        <div id="score">Счет: 0</div>
+        <div class="buttons-container">
+            <button id="start-btn">START</button>
+            <button id="pause-btn">Пауза</button>
+        </div>
+        
+        <!-- Стартовый экран -->
+        <div id="start-screen">
+            <h1 id="game-title">ЗМЕЙКА VK</h1>
+            
+            <div class="controls-select-container">
+                <label class="controls-label">Выберите способ управления:</label>
+                <select id="controls-select">
+                    <option value="keyboard">Клавиатура (WASD/стрелки)</option>
+                    <option value="touch">Сенсорное управление</option>
+                    <option value="gamepad">Геймпад</option>
+                </select>
+            </div>
+            
+            <div id="start-prompt">Нажмите START чтобы начать</div>
+        </div>
+        
+        <!-- Экран Game Over -->
+        <div id="game-over-screen">
+            <h1 id="game-over-title">GAME OVER</h1>
+            <div id="final-score">Ваш счет: 0</div>
+            <div id="restart-prompt">Нажмите START чтобы сыграть снова</div>
+        </div>
+        
+        <!-- Оверлей паузы -->
+        <div id="pause-overlay">
+            <div id="pause-text">ПАУЗА</div>
+        </div>
     </div>
+
     <script src="game.js"></script>
 </body>
 </html>
