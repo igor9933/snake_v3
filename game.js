@@ -44,6 +44,7 @@ let currentControls = 'keyboard';
 let currentLevel = 1;
 let obstacles = [];
 let gamepadConnected = false;
+let lastTime = 0;
 
 // Змейка/Дракон
 let snake = [
@@ -98,11 +99,30 @@ function isFoodOnSnake() {
 
 // Генерация еды
 function generateFood() {
+    let attempts = 0;
+    const maxAttempts = 100;
+
     do {
         food = {
             x: Math.floor(Math.random() * gridSize),
             y: Math.floor(Math.random() * gridSize)
         };
+        attempts++;
+
+        if (attempts >= maxAttempts) {
+            // Если не удалось найти свободное место, размещаем в первом попавшемся
+            for (let y = 0; y < gridSize; y++) {
+                for (let x = 0; x < gridSize; x++) {
+                    const cellFree = !snake.some(s => s.x === x && s.y === y) &&
+                        !(currentLevel === 2 && obstacles.some(o => o.x === x && o.y === y));
+                    if (cellFree) {
+                        food = { x, y };
+                        return;
+                    }
+                }
+            }
+            break;
+        }
     } while (isFoodOnSnake() ||
         (currentLevel === 2 && obstacles.some(obs => obs.x === food.x && obs.y === food.y)));
 }
@@ -473,7 +493,7 @@ function update() {
 
     // Проверка столкновений
     if (head.x < 0 || head.x >= gridSize || head.y < 0 || head.y >= gridSize ||
-        snake.some(segment => segment.x === head.x && segment.y === head.y) ||
+        snake.some((segment, index) => index !== 0 && segment.x === head.x && segment.y === head.y) ||
         (currentLevel === 2 && obstacles.some(obs => obs.x === head.x && obs.y === head.y))) {
         gameOver();
         return;
@@ -517,7 +537,7 @@ function update() {
 
 // Игровой цикл
 function gameLoop() {
-    if (!isPaused) {
+    if (!isPaused && isGameRunning) {
         update();
         draw();
     }
@@ -541,7 +561,7 @@ function resetGame() {
     direction = 'right';
     nextDirection = 'right';
     score = 0;
-    currentLevel = Math.min(2, Math.max(1, parseInt(levelSelect.value) || 1);
+    currentLevel = Math.min(2, Math.max(1, parseInt(levelSelect.value) || 1));
     obstacles = [];
 
     if (currentLevel === 2) {
@@ -599,6 +619,7 @@ function handleKeyDown(e) {
             if (direction !== 'left') nextDirection = 'right';
             break;
         case ' ':
+        case 'Escape':
             if (isGameRunning) togglePause();
             break;
     }
@@ -625,18 +646,18 @@ function checkGamepad() {
     }
 
     // Проверка кнопок (крестовина)
-    if (gamepad.buttons[12].pressed && direction !== 'down') nextDirection = 'up';
-    if (gamepad.buttons[13].pressed && direction !== 'up') nextDirection = 'down';
-    if (gamepad.buttons[14].pressed && direction !== 'right') nextDirection = 'left';
-    if (gamepad.buttons[15].pressed && direction !== 'left') nextDirection = 'right';
+    if (gamepad.buttons[12]?.pressed && direction !== 'down') nextDirection = 'up';
+    if (gamepad.buttons[13]?.pressed && direction !== 'up') nextDirection = 'down';
+    if (gamepad.buttons[14]?.pressed && direction !== 'right') nextDirection = 'left';
+    if (gamepad.buttons[15]?.pressed && direction !== 'left') nextDirection = 'right';
 
     // Кнопка START для рестарта
-    if (gameOverScreen.style.display === 'flex' && gamepad.buttons[9].pressed) {
+    if (gameOverScreen.style.display === 'flex' && (gamepad.buttons[9]?.pressed || gamepad.buttons[7]?.pressed)) {
         restartButton.click();
     }
 
-    // Кнопка A для паузы
-    if (isGameRunning && gamepad.buttons[0].pressed) {
+    // Кнопка A или START для паузы
+    if (isGameRunning && (gamepad.buttons[0]?.pressed || gamepad.buttons[9]?.pressed)) {
         togglePause();
     }
 }
@@ -645,53 +666,46 @@ function checkGamepad() {
 function createMobileControls() {
     mobileControls.style.display = 'block';
 
-    upBtn.addEventListener('touchstart', () => {
+    // Удаляем старые обработчики перед добавлением новых
+    upBtn.removeEventListener('touchstart', handleUp);
+    downBtn.removeEventListener('touchstart', handleDown);
+    leftBtn.removeEventListener('touchstart', handleLeft);
+    rightBtn.removeEventListener('touchstart', handleRight);
+    upBtn.removeEventListener('mousedown', handleUp);
+    downBtn.removeEventListener('mousedown', handleDown);
+    leftBtn.removeEventListener('mousedown', handleLeft);
+    rightBtn.removeEventListener('mousedown', handleRight);
+
+    function handleUp() {
         if (direction !== 'down') nextDirection = 'up';
-    });
+    }
 
-    downBtn.addEventListener('touchstart', () => {
+    function handleDown() {
         if (direction !== 'up') nextDirection = 'down';
-    });
+    }
 
-    leftBtn.addEventListener('touchstart', () => {
+    function handleLeft() {
         if (direction !== 'right') nextDirection = 'left';
-    });
+    }
 
-    rightBtn.addEventListener('touchstart', () => {
+    function handleRight() {
         if (direction !== 'left') nextDirection = 'right';
-    });
+    }
 
-    // Для десктопов с мышью
-    upBtn.addEventListener('mousedown', () => {
-        if (direction !== 'down') nextDirection = 'up';
-    });
-
-    downBtn.addEventListener('mousedown', () => {
-        if (direction !== 'up') nextDirection = 'down';
-    });
-
-    leftBtn.addEventListener('mousedown', () => {
-        if (direction !== 'right') nextDirection = 'left';
-    });
-
-    rightBtn.addEventListener('mousedown', () => {
-        if (direction !== 'left') nextDirection = 'right';
-    });
+    // Добавляем новые обработчики
+    upBtn.addEventListener('touchstart', handleUp, { passive: true });
+    downBtn.addEventListener('touchstart', handleDown, { passive: true });
+    leftBtn.addEventListener('touchstart', handleLeft, { passive: true });
+    rightBtn.addEventListener('touchstart', handleRight, { passive: true });
+    upBtn.addEventListener('mousedown', handleUp);
+    downBtn.addEventListener('mousedown', handleDown);
+    leftBtn.addEventListener('mousedown', handleLeft);
+    rightBtn.addEventListener('mousedown', handleRight);
 }
 
 // Удаление мобильного управления
 function removeMobileControls() {
     mobileControls.style.display = 'none';
-
-    upBtn.removeEventListener('touchstart', () => { });
-    downBtn.removeEventListener('touchstart', () => { });
-    leftBtn.removeEventListener('touchstart', () => { });
-    rightBtn.removeEventListener('touchstart', () => { });
-
-    upBtn.removeEventListener('mousedown', () => { });
-    downBtn.removeEventListener('mousedown', () => { });
-    leftBtn.removeEventListener('mousedown', () => { });
-    rightBtn.removeEventListener('mousedown', () => { });
 }
 
 // Обработчики событий
@@ -701,7 +715,9 @@ window.addEventListener('gamepadconnected', (e) => {
     console.log('Gamepad connected:', e.gamepad.id);
     gamepadConnected = true;
     if (currentControls === 'gamepad') {
-        alert('Геймпад подключен! Используйте джойстик или крестовину для управления.');
+        pauseText.textContent = "Геймпад подключен!";
+        togglePause();
+        setTimeout(togglePause, 1500);
     }
 });
 
@@ -709,21 +725,25 @@ window.addEventListener('gamepaddisconnected', (e) => {
     console.log('Gamepad disconnected:', e.gamepad.id);
     gamepadConnected = false;
     if (currentControls === 'gamepad') {
-        alert('Геймпад отключен! Переключитесь на клавиатуру или сенсорное управление.');
+        pauseText.textContent = "Геймпад отключен!";
+        togglePause();
+        setTimeout(togglePause, 1500);
     }
 });
 
 controlsSelect.addEventListener('change', () => {
     currentControls = controlsSelect.value;
 
-    if (currentControls === 'touch' && 'ontouchstart' in window) {
+    if (currentControls === 'touch' && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
         createMobileControls();
     } else {
         removeMobileControls();
     }
 
     if (currentControls === 'gamepad' && !gamepadConnected) {
-        alert('Подключите геймпад и нажмите любую кнопку для активации');
+        pauseText.textContent = "Подключите геймпад!";
+        togglePause();
+        setTimeout(togglePause, 1500);
     }
 });
 
@@ -742,7 +762,7 @@ startButton.addEventListener('click', () => {
         gameInterval = setInterval(gameLoop, gameSpeed);
         startButton.textContent = 'Заново';
 
-        if (currentControls === 'touch' && 'ontouchstart' in window) {
+        if (currentControls === 'touch' && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
             createMobileControls();
         } else {
             removeMobileControls();
@@ -769,7 +789,7 @@ startButtonMain.addEventListener('click', () => {
     gameInterval = setInterval(gameLoop, gameSpeed);
     startButton.textContent = 'Заново';
 
-    if (currentControls === 'touch' && 'ontouchstart' in window) {
+    if (currentControls === 'touch' && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
         createMobileControls();
     } else {
         removeMobileControls();
@@ -797,11 +817,13 @@ window.addEventListener('resize', resizeCanvas);
 draw();
 
 // Основной цикл
-function mainLoop() {
-    if (gamepadConnected && currentControls === 'gamepad') {
+function mainLoop(timestamp) {
+    if (currentControls === 'gamepad') {
         checkGamepad();
     }
+
     requestAnimationFrame(mainLoop);
 }
 
+// Запуск игры
 mainLoop();
