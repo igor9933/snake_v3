@@ -10,6 +10,7 @@ const gameOverScreen = document.getElementById('game-over-screen');
 const finalScore = document.getElementById('final-score');
 const restartPrompt = document.getElementById('restart-prompt');
 const controlsSelect = document.getElementById('controls-select');
+const levelSelect = document.getElementById('level-select'); // Добавлен выбор уровня
 const pauseOverlay = document.getElementById('pause-overlay');
 const pauseText = document.getElementById('pause-text');
 
@@ -29,8 +30,8 @@ let gameSpeed = 150;
 let gameInterval;
 let isPaused = false;
 let isGameRunning = false;
-let currentControls = 'keyboard'; // По умолчанию клавиатура
-let currentLevel = 1;
+let currentControls = 'keyboard';
+let currentLevel = 1; // По умолчанию первый уровень
 let obstacles = [];
 
 // Змейка/Дракон
@@ -462,8 +463,8 @@ function update() {
         scoreElement.textContent = `Счет: ${score} | Уровень: ${currentLevel}`;
         finalScore.textContent = `Ваш счет: ${score}`;
         
-        // Проверка перехода на второй уровень
-        if (score >= 200 && currentLevel === 1) {
+        // Если выбран первый уровень, проверяем переход на второй
+        if (levelSelect.value === '1' && score >= 200 && currentLevel === 1) {
             currentLevel = 2;
             generateObstacles();
             gameSpeed = 120;
@@ -513,11 +514,19 @@ function resetGame() {
     direction = 'right';
     nextDirection = 'right';
     score = 0;
-    currentLevel = 1;
+    currentLevel = parseInt(levelSelect.value); // Устанавливаем выбранный уровень
     obstacles = [];
+    
+    // Генерируем препятствия, если выбран второй уровень
+    if (currentLevel === 2) {
+        generateObstacles();
+        gameSpeed = 120;
+    } else {
+        gameSpeed = 150;
+    }
+    
     scoreElement.textContent = `Счет: ${score} | Уровень: ${currentLevel}`;
     finalScore.textContent = `Ваш счет: ${score}`;
-    gameSpeed = 150;
     generateFood();
     gameOverScreen.style.display = 'none';
     eatAnimation.active = false;
