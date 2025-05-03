@@ -1,0 +1,317 @@
+//   // Инициализация игры
+//   const canvas = document.getElementById('game-canvas');
+//   const ctx = canvas.getContext('2d');
+//   const scoreElement = document.getElementById('score');
+//   const startButton = document.getElementById('start-btn');
+//   const pauseButton = document.getElementById('pause-btn');
+  
+//   // Параметры игры
+//   const gridSize = 15;
+//   const tileSize = canvas.width / gridSize;
+//   let score = 0;
+//   let gameSpeed = 150; // ms
+//   let gameInterval;
+//   let isPaused = false;
+//   let isGameRunning = false;
+  
+//   // Змейка
+//   let snake = [
+//       {x: 7, y: 7},
+//       {x: 6, y: 7},
+//       {x: 5, y: 7}
+//   ];
+  
+//   let direction = 'right';
+//   let nextDirection = 'right';
+  
+//   // Еда
+//   let food = {
+//       x: Math.floor(Math.random() * gridSize),
+//       y: Math.floor(Math.random() * gridSize)
+//   };
+  
+//   // Проверка, находится ли еда на змейке
+//   function isFoodOnSnake() {
+//       return snake.some(segment => segment.x === food.x && segment.y === food.y);
+//   }
+  
+//   // Генерация новой еды
+//   function generateFood() {
+//       do {
+//           food = {
+//               x: Math.floor(Math.random() * gridSize),
+//               y: Math.floor(Math.random() * gridSize)
+//           };
+//       } while (isFoodOnSnake());
+//   }
+  
+//   // Отрисовка игры
+//   function draw() {
+//       // Очистка холста
+//       ctx.fillStyle = '#f9f9f9';
+//       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+//       // Отрисовка сетки
+//       ctx.strokeStyle = '#e7e8ec';
+//       ctx.lineWidth = 0.5;
+      
+//       for (let i = 0; i < gridSize; i++) {
+//           // Вертикальные линии
+//           ctx.beginPath();
+//           ctx.moveTo(i * tileSize, 0);
+//           ctx.lineTo(i * tileSize, canvas.height);
+//           ctx.stroke();
+          
+//           // Горизонтальные линии
+//           ctx.beginPath();
+//           ctx.moveTo(0, i * tileSize);
+//           ctx.lineTo(canvas.width, i * tileSize);
+//           ctx.stroke();
+//       }
+      
+//       // Отрисовка змейки
+//       snake.forEach((segment, index) => {
+//           if (index === 0) {
+//               // Голова змейки
+//               ctx.fillStyle = '#2a5885';
+//           } else {
+//               // Тело змейки
+//               ctx.fillStyle = '#4a76a8';
+//           }
+          
+//           ctx.fillRect(
+//               segment.x * tileSize + 1,
+//               segment.y * tileSize + 1,
+//               tileSize - 2,
+//               tileSize - 2
+//           );
+          
+//           // Глаза у головы
+//           if (index === 0) {
+//               ctx.fillStyle = 'white';
+//               const eyeSize = tileSize / 5;
+              
+//               // Левый глаз
+//               let leftEyeX, leftEyeY;
+//               // Правый глаз
+//               let rightEyeX, rightEyeY;
+              
+//               switch (direction) {
+//                   case 'up':
+//                       leftEyeX = segment.x * tileSize + tileSize / 4;
+//                       leftEyeY = segment.y * tileSize + tileSize / 4;
+//                       rightEyeX = segment.x * tileSize + 3 * tileSize / 4;
+//                       rightEyeY = segment.y * tileSize + tileSize / 4;
+//                       break;
+//                   case 'down':
+//                       leftEyeX = segment.x * tileSize + tileSize / 4;
+//                       leftEyeY = segment.y * tileSize + 3 * tileSize / 4;
+//                       rightEyeX = segment.x * tileSize + 3 * tileSize / 4;
+//                       rightEyeY = segment.y * tileSize + 3 * tileSize / 4;
+//                       break;
+//                   case 'left':
+//                       leftEyeX = segment.x * tileSize + tileSize / 4;
+//                       leftEyeY = segment.y * tileSize + tileSize / 4;
+//                       rightEyeX = segment.x * tileSize + tileSize / 4;
+//                       rightEyeY = segment.y * tileSize + 3 * tileSize / 4;
+//                       break;
+//                   case 'right':
+//                       leftEyeX = segment.x * tileSize + 3 * tileSize / 4;
+//                       leftEyeY = segment.y * tileSize + tileSize / 4;
+//                       rightEyeX = segment.x * tileSize + 3 * tileSize / 4;
+//                       rightEyeY = segment.y * tileSize + 3 * tileSize / 4;
+//                       break;
+//               }
+              
+//               ctx.beginPath();
+//               ctx.arc(leftEyeX, leftEyeY, eyeSize, 0, Math.PI * 2);
+//               ctx.fill();
+              
+//               ctx.beginPath();
+//               ctx.arc(rightEyeX, rightEyeY, eyeSize, 0, Math.PI * 2);
+//               ctx.fill();
+//           }
+//       });
+      
+//       // Отрисовка еды
+//       ctx.fillStyle = '#e64646';
+//       ctx.fillRect(
+//           food.x * tileSize + 1,
+//           food.y * tileSize + 1,
+//           tileSize - 2,
+//           tileSize - 2
+//       );
+//   }
+  
+//   // Обновление игры
+//   function update() {
+//       // Обновляем направление
+//       direction = nextDirection;
+      
+//       // Получаем голову змейки
+//       const head = {x: snake[0].x, y: snake[0].y};
+      
+//       // Перемещаем голову в зависимости от направления
+//       switch (direction) {
+//           case 'up':
+//               head.y -= 1;
+//               break;
+//           case 'down':
+//               head.y += 1;
+//               break;
+//           case 'left':
+//               head.x -= 1;
+//               break;
+//           case 'right':
+//               head.x += 1;
+//               break;
+//       }
+      
+//       // Проверка на столкновение с границами
+//       if (head.x < 0 || head.x >= gridSize || head.y < 0 || head.y >= gridSize) {
+//           gameOver();
+//           return;
+//       }
+      
+//       // Проверка на столкновение с собой
+//       if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+//           gameOver();
+//           return;
+//       }
+      
+//       // Добавляем новую голову
+//       snake.unshift(head);
+      
+//       // Проверка, съела ли змейка еду
+//       if (head.x === food.x && head.y === food.y) {
+//           // Увеличиваем счет
+//           score += 10;
+//           scoreElement.textContent = `Счет: ${score}`;
+          
+//           // Увеличиваем скорость каждые 50 очков
+//           if (score % 50 === 0 && gameSpeed > 50) {
+//               gameSpeed -= 10;
+//               clearInterval(gameInterval);
+//               gameInterval = setInterval(gameLoop, gameSpeed);
+//           }
+          
+//           // Генерируем новую еду
+//           generateFood();
+//       } else {
+//           // Удаляем хвост, если еда не съедена
+//           snake.pop();
+//       }
+//   }
+  
+//   // Игровой цикл
+//   function gameLoop() {
+//       if (!isPaused) {
+//           update();
+//           draw();
+//       }
+//   }
+  
+//   // Конец игры
+//   function gameOver() {
+//       clearInterval(gameInterval);
+//       isGameRunning = false;
+//       alert(`Игра окончена! Ваш счет: ${score}`);
+      
+//       // Сброс игры
+//       resetGame();
+//   }
+  
+//   // Сброс игры
+//   function resetGame() {
+//       snake = [
+//           {x: 7, y: 7},
+//           {x: 6, y: 7},
+//           {x: 5, y: 7}
+//       ];
+//       direction = 'right';
+//       nextDirection = 'right';
+//       score = 0;
+//       scoreElement.textContent = `Счет: ${score}`;
+//       gameSpeed = 150;
+//       generateFood();
+//   }
+  
+//   // Обработка нажатий клавиш
+//   document.addEventListener('keydown', e => {
+//       if (!isGameRunning) return;
+      
+//       switch (e.key) {
+//           case 'ArrowUp':
+//               if (direction !== 'down') nextDirection = 'up';
+//               break;
+//           case 'ArrowDown':
+//               if (direction !== 'up') nextDirection = 'down';
+//               break;
+//           case 'ArrowLeft':
+//               if (direction !== 'right') nextDirection = 'left';
+//               break;
+//           case 'ArrowRight':
+//               if (direction !== 'left') nextDirection = 'right';
+//               break;
+//           case ' ':
+//               // Пробел для паузы
+//               togglePause();
+//               break;
+//       }
+//   });
+  
+//   // Управление кнопками
+//   startButton.addEventListener('click', () => {
+//       if (!isGameRunning) {
+//           isGameRunning = true;
+//           isPaused = false;
+//           gameInterval = setInterval(gameLoop, gameSpeed);
+//           startButton.textContent = 'Заново';
+//       } else {
+//           clearInterval(gameInterval);
+//           resetGame();
+//           isGameRunning = true;
+//           isPaused = false;
+//           gameInterval = setInterval(gameLoop, gameSpeed);
+//       }
+//   });
+  
+//   pauseButton.addEventListener('click', togglePause);
+  
+//   function togglePause() {
+//       if (!isGameRunning) return;
+      
+//       isPaused = !isPaused;
+//       pauseButton.textContent = isPaused ? 'Продолжить' : 'Пауза';
+//   }
+  
+//   // Первоначальная отрисовка
+//   draw();
+  
+//   // Инициализация VK API
+//   window.vkAsyncInit = function() {
+//       VK.init({
+//           apiId: 51930490 // Замените на ваш app_id
+//       });
+//   };
+  
+//   setTimeout(function() {
+//       const el = document.createElement('script');
+//       el.src = 'https://vk.com/js/api/openapi.js?169';
+//       el.type = 'text/javascript';
+//       document.getElementById('game-container').appendChild(el);
+//   }, 0);
+  
+//   // Функция для публикации результата на стену
+//   function shareScore() {
+//       VK.api('wall.post', {
+//           message: `Я набрал ${score} очков в игре "Змейка ВКонтакте"! Попробуйте побить мой рекорд!`,
+//           attachments: 'photo-APP_ID_PHOTO_ID' // Замените на ваше фото
+//       }, function(response) {
+//           if (response.error) {
+//               alert('Ошибка при публикации: ' + response.error.error_msg);
+//           } else {
+//               alert('Результат опубликован на вашей стене!');
+//           }
+//       });
+//   }
