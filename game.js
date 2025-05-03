@@ -4,11 +4,7 @@ const ctx = canvas.getContext('2d');
 const scoreElement = document.getElementById('score');
 const startButton = document.getElementById('start-btn');
 const pauseButton = document.getElementById('pause-btn');
-const settingsButton = document.getElementById('settings-btn');
 const gameContainer = document.getElementById('game-container');
-
-// Настройки управления
-let controlType = 'keyboard'; // 'keyboard' или 'gamepad'
 
 // Адаптация размера холста под экран
 function resizeCanvas() {
@@ -82,73 +78,6 @@ startPrompt.style.marginBottom = '2rem';
 startScreen.appendChild(gameTitle);
 startScreen.appendChild(startPrompt);
 gameContainer.appendChild(startScreen);
-
-const settingsScreen = document.createElement('div');
-settingsScreen.style.position = 'absolute';
-settingsScreen.style.top = '0';
-settingsScreen.style.left = '0';
-settingsScreen.style.width = '100%';
-settingsScreen.style.height = '100%';
-settingsScreen.style.backgroundColor = 'rgba(42, 88, 133, 0.95)';
-settingsScreen.style.display = 'none';
-settingsScreen.style.flexDirection = 'column';
-settingsScreen.style.justifyContent = 'center';
-settingsScreen.style.alignItems = 'center';
-settingsScreen.style.zIndex = '2000';
-
-const settingsTitle = document.createElement('h2');
-settingsTitle.textContent = 'НАСТРОЙКИ';
-settingsTitle.style.color = 'white';
-settingsTitle.style.fontSize = '2rem';
-settingsTitle.style.marginBottom = '2rem';
-
-const controlsTitle = document.createElement('h3');
-controlsTitle.textContent = 'Управление:';
-controlsTitle.style.color = 'white';
-controlsTitle.style.fontSize = '1.5rem';
-controlsTitle.style.marginBottom = '1rem';
-
-const controlsContainer = document.createElement('div');
-controlsContainer.style.display = 'flex';
-controlsContainer.style.flexDirection = 'column';
-controlsContainer.style.gap = '1rem';
-controlsContainer.style.marginBottom = '2rem';
-
-const keyboardOption = document.createElement('button');
-keyboardOption.textContent = 'Клавиатура';
-keyboardOption.style.padding = '0.5rem 1rem';
-keyboardOption.style.fontSize = '1rem';
-keyboardOption.style.borderRadius = '5px';
-keyboardOption.style.border = 'none';
-keyboardOption.style.backgroundColor = '#4a76a8';
-keyboardOption.style.color = 'white';
-
-const gamepadOption = document.createElement('button');
-gamepadOption.textContent = 'Геймпад';
-gamepadOption.style.padding = '0.5rem 1rem';
-gamepadOption.style.fontSize = '1rem';
-gamepadOption.style.borderRadius = '5px';
-gamepadOption.style.border = 'none';
-gamepadOption.style.backgroundColor = '#4a76a8';
-gamepadOption.style.color = 'white';
-
-const backButton = document.createElement('button');
-backButton.textContent = 'НАЗАД';
-backButton.style.padding = '0.5rem 1rem';
-backButton.style.fontSize = '1rem';
-backButton.style.borderRadius = '5px';
-backButton.style.border = 'none';
-backButton.style.backgroundColor = '#e64646';
-backButton.style.color = 'white';
-backButton.style.marginTop = '2rem';
-
-controlsContainer.appendChild(controlsTitle);
-controlsContainer.appendChild(keyboardOption);
-controlsContainer.appendChild(gamepadOption);
-settingsScreen.appendChild(settingsTitle);
-settingsScreen.appendChild(controlsContainer);
-settingsScreen.appendChild(backButton);
-gameContainer.appendChild(settingsScreen);
 
 const gameOverScreen = document.createElement('div');
 gameOverScreen.style.position = 'absolute';
@@ -405,7 +334,7 @@ function resetGame() {
 }
 
 // Управление с клавиатуры
-function handleKeyboardInput(e) {
+document.addEventListener('keydown', e => {
     if (!isGameRunning && e.key !== 'Enter') return;
     
     switch (e.key) {
@@ -416,14 +345,12 @@ function handleKeyboardInput(e) {
         case ' ': togglePause(); break;
         case 'Enter': if (!isGameRunning) startButton.click(); break;
     }
-}
+});
 
 // Управление с геймпада
 let gamepadConnected = false;
 
 function checkGamepad() {
-    if (controlType !== 'gamepad') return;
-    
     const gamepads = navigator.getGamepads();
     if (!gamepads[0]) return;
     
@@ -595,34 +522,6 @@ startButton.addEventListener('click', () => {
 
 pauseButton.addEventListener('click', togglePause);
 
-settingsButton.addEventListener('click', () => {
-    settingsScreen.style.display = 'flex';
-    if (isGameRunning) {
-        isPaused = true;
-        pauseButton.textContent = 'Продолжить';
-    }
-});
-
-backButton.addEventListener('click', () => {
-    settingsScreen.style.display = 'none';
-    if (isGameRunning && !isPaused) {
-        isPaused = false;
-        pauseButton.textContent = 'Пауза';
-    }
-});
-
-keyboardOption.addEventListener('click', () => {
-    controlType = 'keyboard';
-    keyboardOption.style.backgroundColor = '#2a5885';
-    gamepadOption.style.backgroundColor = '#4a76a8';
-});
-
-gamepadOption.addEventListener('click', () => {
-    controlType = 'gamepad';
-    gamepadOption.style.backgroundColor = '#2a5885';
-    keyboardOption.style.backgroundColor = '#4a76a8';
-});
-
 function togglePause() {
     if (!isGameRunning) return;
     
@@ -669,31 +568,10 @@ draw();
 
 // Основной цикл с проверкой геймпада
 function mainLoop() {
-    if (gamepadConnected && controlType === 'gamepad') {
+    if (gamepadConnected) {
         checkGamepad();
     }
     requestAnimationFrame(mainLoop);
 }
 
-// Инициализация управления
-function initControls() {
-    // Установим начальное выделение выбранного типа управления
-    if (controlType === 'keyboard') {
-        keyboardOption.style.backgroundColor = '#2a5885';
-        gamepadOption.style.backgroundColor = '#4a76a8';
-    } else {
-        gamepadOption.style.backgroundColor = '#2a5885';
-        keyboardOption.style.backgroundColor = '#4a76a8';
-    }
-    
-    // Добавим/удалим обработчик клавиатуры в зависимости от выбора
-    if (controlType === 'keyboard') {
-        document.addEventListener('keydown', handleKeyboardInput);
-    } else {
-        document.removeEventListener('keydown', handleKeyboardInput);
-    }
-}
-
-// Запуск игры
-initControls();
 mainLoop();
