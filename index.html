@@ -6,11 +6,56 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <h1>Змейка/Дракон</h1>
+    <div id="score">Счет: 0 | Уровень: 1</div>
+    
+    <div id="controls">
+        <select id="level-select">
+            <option value="1">Уровень 1 (Змейка)</option>
+            <option value="2">Уровень 2 (Дракон)</option>
+        </select>
+        
+        <select id="controls-select">
+            <option value="keyboard">Клавиатура</option>
+            <option value="gamepad">Геймпад</option>
+            <option value="touch">Сенсорное</option>
+        </select>
+        
+        <button id="start-btn">Старт</button>
+        <button id="pause-btn">Пауза</button>
+    </div>
+    
     <div id="game-container">
         <canvas id="game-canvas"></canvas>
-        <div id="score">Счет: 0</div>
-        <button id="start-btn">START</button>
-        <button id="pause-btn">Пауза</button>
+        
+        <div id="start-screen" class="screen">
+            <h2>Змейка/Дракон</h2>
+            <p>Выберите уровень и управление</p>
+            <button id="start-btn-main">Начать игру</button>
+        </div>
+        
+        <div id="game-over-screen" class="screen hidden">
+            <h2>Игра окончена!</h2>
+            <p id="final-score">Ваш счет: 0</p>
+            <button id="restart-btn">Играть снова</button>
+            <p id="restart-prompt">Нажмите пробел или кнопку START на геймпаде</p>
+        </div>
+        
+        <div id="pause-overlay" class="screen hidden">
+            <h2 id="pause-text">Пауза</h2>
+            <button id="resume-btn">Продолжить</button>
+        </div>
+    </div>
+    
+    <div id="mobile-controls">
+        <div class="mobile-row">
+            <button class="mobile-btn" id="up-btn">↑</button>
+        </div>
+        <div class="mobile-row">
+            <button class="mobile-btn" id="left-btn">←</button>
+            <button class="mobile-btn" id="down-btn">↓</button>
+            <button class="mobile-btn" id="right-btn">→</button>
+        </div>
     </div>
 
     <script src="game.js"></script>
