@@ -5,10 +5,17 @@
    const startButton = document.getElementById('start-btn');
    const pauseButton = document.getElementById('pause-btn');
    const gameContainer = document.getElementById('game-container');
+   const startScreen = document.getElementById('start-screen');
+   const gameOverScreen = document.getElementById('game-over-screen');
+   const finalScore = document.getElementById('final-score');
+   const restartPrompt = document.getElementById('restart-prompt');
+   const controlsSelect = document.getElementById('controls-select');
+   const pauseOverlay = document.getElementById('pause-overlay');
+   const pauseText = document.getElementById('pause-text');
 
    // Адаптация размера холста под экран
    function resizeCanvas() {
-       const size = Math.min(window.innerWidth, window.innerHeight) * 0.9;
+       const size = Math.min(window.innerWidth, window.innerHeight * 0.7);
        canvas.width = size;
        canvas.height = size;
        tileSize = canvas.width / gridSize;
@@ -48,107 +55,6 @@
        progress: 0,
        maxProgress: 10
    };
-
-   // Создаем элементы интерфейса
-   const startScreen = document.createElement('div');
-   startScreen.style.position = 'absolute';
-   startScreen.style.top = '0';
-   startScreen.style.left = '0';
-   startScreen.style.width = '100%';
-   startScreen.style.height = '100%';
-   startScreen.style.backgroundColor = 'rgba(42, 88, 133, 0.9)';
-   startScreen.style.display = 'flex';
-   startScreen.style.flexDirection = 'column';
-   startScreen.style.justifyContent = 'center';
-   startScreen.style.alignItems = 'center';
-   startScreen.style.zIndex = '1000';
-
-   const gameTitle = document.createElement('h1');
-   gameTitle.textContent = 'ЗМЕЙКА VK';
-   gameTitle.style.color = 'white';
-   gameTitle.style.fontSize = '3rem';
-   gameTitle.style.marginBottom = '2rem';
-   gameTitle.style.textShadow = '2px 2px 4px rgba(0,0,0,0.5)';
-
-   // Контейнер для настроек управления
-   const controlsContainer = document.createElement('div');
-   controlsContainer.style.display = 'flex';
-   controlsContainer.style.flexDirection = 'column';
-   controlsContainer.style.alignItems = 'center';
-   controlsContainer.style.marginBottom = '20px';
-
-   const controlsLabel = document.createElement('label');
-   controlsLabel.textContent = 'Выберите способ управления:';
-   controlsLabel.style.color = 'white';
-   controlsLabel.style.marginBottom = '10px';
-   controlsLabel.style.fontSize = '1.2rem';
-
-   const controlsSelect = document.createElement('select');
-   controlsSelect.style.padding = '8px';
-   controlsSelect.style.borderRadius = '5px';
-   controlsSelect.style.border = 'none';
-   controlsSelect.style.fontSize = '1rem';
-   controlsSelect.innerHTML = `
-       <option value="keyboard">Клавиатура (WASD/стрелки)</option>
-       <option value="touch">Сенсорное управление</option>
-       <option value="gamepad">Геймпад</option>
-   `;
-
-   controlsSelect.addEventListener('change', (e) => {
-       currentControls = e.target.value;
-       if (currentControls === 'touch' && !document.getElementById('mobile-controls')) {
-           createMobileControls();
-       }
-   });
-
-   controlsContainer.appendChild(controlsLabel);
-   controlsContainer.appendChild(controlsSelect);
-
-   const startPrompt = document.createElement('div');
-   startPrompt.textContent = 'Нажмите START чтобы начать';
-   startPrompt.style.color = 'white';
-   startPrompt.style.fontSize = '1.5rem';
-   startPrompt.style.marginBottom = '2rem';
-
-   startScreen.appendChild(gameTitle);
-   startScreen.appendChild(controlsContainer);
-   startScreen.appendChild(startPrompt);
-   gameContainer.appendChild(startScreen);
-
-   const gameOverScreen = document.createElement('div');
-   gameOverScreen.style.position = 'absolute';
-   gameOverScreen.style.top = '0';
-   gameOverScreen.style.left = '0';
-   gameOverScreen.style.width = '100%';
-   gameOverScreen.style.height = '100%';
-   gameOverScreen.style.backgroundColor = 'rgba(230, 70, 70, 0.9)';
-   gameOverScreen.style.display = 'none';
-   gameOverScreen.style.flexDirection = 'column';
-   gameOverScreen.style.justifyContent = 'center';
-   gameOverScreen.style.alignItems = 'center';
-   gameOverScreen.style.zIndex = '1000';
-
-   const gameOverTitle = document.createElement('h1');
-   gameOverTitle.textContent = 'GAME OVER';
-   gameOverTitle.style.color = 'white';
-   gameOverTitle.style.fontSize = '3rem';
-   gameOverTitle.style.marginBottom = '1rem';
-   gameOverTitle.style.textShadow = '2px 2px 4px rgba(0,0,0,0.5)';
-
-   const finalScore = document.createElement('div');
-   finalScore.style.color = 'white';
-   finalScore.style.fontSize = '2rem';
-   finalScore.style.marginBottom = '2rem';
-
-   const restartPrompt = document.createElement('div');
-   restartPrompt.textContent = 'Нажмите START чтобы сыграть снова';
-   restartPrompt.style.color = 'white';
-   restartPrompt.style.fontSize = '1.2rem';
-
-   gameOverScreen.appendChild(gameOverTitle);
-   gameOverScreen.appendChild(finalScore);
-   gameOverScreen.appendChild(restartPrompt);
-   gameContainer.appendChild(gameOverScreen);
 
    // Проверка, находится ли еда на змейке
    function isFoodOnSnake() {
@@ -322,6 +228,7 @@
            
            score += 10;
            scoreElement.textContent = `Счет: ${score}`;
+           finalScore.textContent = `Ваш счет: ${score}`;
            
            if (score % 50 === 0 && gameSpeed > 50) {
                gameSpeed -= 10;
@@ -363,6 +270,7 @@
        nextDirection = 'right';
        score = 0;
        scoreElement.textContent = `Счет: ${score}`;
+       finalScore.textContent = `Ваш счет: ${score}`;
        gameSpeed = 150;
        generateFood();
        gameOverScreen.style.display = 'none';
@@ -490,60 +398,25 @@
        
        const controls = document.createElement('div');
        controls.id = 'mobile-controls';
-       controls.style.position = 'fixed';
-       controls.style.bottom = '20px';
-       controls.style.left = '0';
-       controls.style.right = '0';
-       controls.style.display = 'flex';
-       controls.style.flexDirection = 'column';
-       controls.style.alignItems = 'center';
-       controls.style.zIndex = '100';
-       controls.style.padding = '10px';
-       controls.style.backgroundColor = 'rgba(0,0,0,0.3)';
-       controls.style.borderRadius = '20px';
-       controls.style.maxWidth = '300px';
-       controls.style.margin = '0 auto';
-
+       
        const upBtn = document.createElement('button');
        upBtn.innerHTML = '&#8593;';
-       upBtn.style.width = '60px';
-       upBtn.style.height = '50px';
-       upBtn.style.margin = '5px';
-       upBtn.style.fontSize = '24px';
-       upBtn.style.borderRadius = '10px';
-       upBtn.style.border = 'none';
-       upBtn.style.background = 'rgba(255,255,255,0.7)';
+       upBtn.id = 'up-btn';
 
        const row = document.createElement('div');
+       row.className = 'controls-row';
+       
        const leftBtn = document.createElement('button');
        leftBtn.innerHTML = '&#8592;';
-       leftBtn.style.width = '60px';
-       leftBtn.style.height = '50px';
-       leftBtn.style.margin = '5px';
-       leftBtn.style.fontSize = '24px';
-       leftBtn.style.borderRadius = '10px';
-       leftBtn.style.border = 'none';
-       leftBtn.style.background = 'rgba(255,255,255,0.7)';
+       leftBtn.id = 'left-btn';
 
        const downBtn = document.createElement('button');
        downBtn.innerHTML = '&#8595;';
-       downBtn.style.width = '60px';
-       downBtn.style.height = '50px';
-       downBtn.style.margin = '5px';
-       downBtn.style.fontSize = '24px';
-       downBtn.style.borderRadius = '10px';
-       downBtn.style.border = 'none';
-       downBtn.style.background = 'rgba(255,255,255,0.7)';
+       downBtn.id = 'down-btn';
 
        const rightBtn = document.createElement('button');
        rightBtn.innerHTML = '&#8594;';
-       rightBtn.style.width = '60px';
-       rightBtn.style.height = '50px';
-       rightBtn.style.margin = '5px';
-       rightBtn.style.fontSize = '24px';
-       rightBtn.style.borderRadius = '10px';
-       rightBtn.style.border = 'none';
-       rightBtn.style.background = 'rgba(255,255,255,0.7)';
+       rightBtn.id = 'right-btn';
 
        // Обработчики
        const handleDirection = (dir) => {
@@ -559,14 +432,17 @@
            e.preventDefault();
            handleDirection('up');
        });
+       
        downBtn.addEventListener('touchstart', (e) => {
            e.preventDefault();
            handleDirection('down');
        });
+       
        leftBtn.addEventListener('touchstart', (e) => {
            e.preventDefault();
            handleDirection('left');
        });
+       
        rightBtn.addEventListener('touchstart', (e) => {
            e.preventDefault();
            handleDirection('right');
@@ -583,6 +459,13 @@
        document.body.appendChild(controls);
    }
 
+   function removeMobileControls() {
+       const controls = document.getElementById('mobile-controls');
+       if (controls) {
+           controls.remove();
+       }
+   }
+
    // Управление кнопками
    startButton.addEventListener('click', () => {
        if (!isGameRunning) {
@@ -593,9 +476,11 @@
            gameInterval = setInterval(gameLoop, gameSpeed);
            startButton.textContent = 'Заново';
            
-           // Создаем мобильные кнопки, если нужно
+           // Создаем или удаляем мобильные кнопки в зависимости от выбора
            if (currentControls === 'touch' && 'ontouchstart' in window) {
                createMobileControls();
+           } else {
+               removeMobileControls();
            }
        } else {
            clearInterval(gameInterval);
@@ -615,32 +500,22 @@
        pauseButton.textContent = isPaused ? 'Продолжить' : 'Пауза';
        
        if (isPaused) {
-           const pauseOverlay = document.createElement('div');
-           pauseOverlay.id = 'pause-overlay';
-           pauseOverlay.style.position = 'absolute';
-           pauseOverlay.style.top = '0';
-           pauseOverlay.style.left = '0';
-           pauseOverlay.style.width = '100%';
-           pauseOverlay.style.height = '100%';
-           pauseOverlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
            pauseOverlay.style.display = 'flex';
-           pauseOverlay.style.justifyContent = 'center';
-           pauseOverlay.style.alignItems = 'center';
-           pauseOverlay.style.zIndex = '500';
-           
-           const pauseText = document.createElement('div');
-           pauseText.textContent = 'ПАУЗА';
-           pauseText.style.color = 'white';
-           pauseText.style.fontSize = '3rem';
-           pauseText.style.fontWeight = 'bold';
-           
-           pauseOverlay.appendChild(pauseText);
-           gameContainer.appendChild(pauseOverlay);
        } else {
-           const overlay = document.getElementById('pause-overlay');
-           if (overlay) overlay.remove();
+           pauseOverlay.style.display = 'none';
        }
    }
+
+   // Обработка изменения способа управления
+   controlsSelect.addEventListener('change', (e) => {
+       currentControls = e.target.value;
+       
+       if (currentControls === 'touch' && isGameRunning && 'ontouchstart' in window) {
+           createMobileControls();
+       } else {
+           removeMobileControls();
+       }
+   });
 
    // Обработка ресайза окна
    window.addEventListener('resize', () => {
