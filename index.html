@@ -1,60 +1,137 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Змейка ВКонтакте</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dragon Snake - Игра Змейка с Драконом</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Pacifico&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <h1>Змейка/Дракон</h1>
-    <div id="score">Счет: 0 | Уровень: 1</div>
-    
-    <div id="controls">
-        <select id="level-select">
-            <option value="1">Уровень 1 (Змейка)</option>
-            <option value="2">Уровень 2 (Дракон)</option>
-        </select>
-        
-        <select id="controls-select">
-            <option value="keyboard">Клавиатура</option>
-            <option value="gamepad">Геймпад</option>
-            <option value="touch">Сенсорное</option>
-        </select>
-        
-        <button id="start-btn">Старт</button>
-        <button id="pause-btn">Пауза</button>
-    </div>
-    
-    <div id="game-container">
-        <canvas id="game-canvas"></canvas>
-        
-        <div id="start-screen" class="screen">
-            <h2>Змейка/Дракон</h2>
-            <p>Выберите уровень и управление</p>
-            <button id="start-btn-main">Начать игру</button>
+    <div class="game-app">
+        <!-- Стартовый экран -->
+        <div id="start-screen" class="screen start-screen">
+            <div class="screen-content">
+                <div class="logo">
+                    <h1>Dragon Snake</h1>
+                    <div class="logo-icon"><i class="fas fa-dragon"></i></div>
+                </div>
+                
+                <div class="settings-panel">
+                    <div class="setting">
+                        <label for="controls-select"><i class="fas fa-gamepad"></i> Управление:</label>
+                        <select id="controls-select" class="styled-select">
+                            <option value="keyboard">Клавиатура</option>
+                            <option value="gamepad">Геймпад</option>
+                            <option value="touch">Сенсорное</option>
+                        </select>
+                    </div>
+                    
+                    <div class="setting">
+                        <label for="level-select"><i class="fas fa-layer-group"></i> Уровень:</label>
+                        <select id="level-select" class="styled-select">
+                            <option value="1">Классическая змейка</option>
+                            <option value="2">Дракон с препятствиями</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button id="start-btn-main" class="btn start-btn">
+                    <span>Начать игру</span>
+                    <i class="fas fa-play"></i>
+                </button>
+                
+                <div class="instructions">
+                    <h3><i class="fas fa-info-circle"></i> Как играть:</h3>
+                    <ul>
+                        <li><i class="fas fa-arrow-up"></i><i class="fas fa-arrow-down"></i><i class="fas fa-arrow-left"></i><i class="fas fa-arrow-right"></i> Управляйте змейкой</li>
+                        <li><i class="fas fa-apple-alt"></i> Собирайте еду для роста</li>
+                        <li><i class="fas fa-gem"></i> На 2 уровне собирайте драгоценности</li>
+                        <li><i class="fas fa-skull"></i> Избегайте стен и своего хвоста</li>
+                    </ul>
+                </div>
+            </div>
         </div>
-        
-        <div id="game-over-screen" class="screen hidden">
-            <h2>Игра окончена!</h2>
-            <p id="final-score">Ваш счет: 0</p>
-            <button id="restart-btn">Играть снова</button>
-            <p id="restart-prompt">Нажмите пробел или кнопку START на геймпаде</p>
-        </div>
-        
-        <div id="pause-overlay" class="screen hidden">
-            <h2 id="pause-text">Пауза</h2>
-            <button id="resume-btn">Продолжить</button>
-        </div>
-    </div>
-    
-    <div id="mobile-controls">
-        <div class="mobile-row">
-            <button class="mobile-btn" id="up-btn">↑</button>
-        </div>
-        <div class="mobile-row">
-            <button class="mobile-btn" id="left-btn">←</button>
-            <button class="mobile-btn" id="down-btn">↓</button>
-            <button class="mobile-btn" id="right-btn">→</button>
+
+        <!-- Игровой экран -->
+        <div id="game-container" class="game-container">
+            <div class="game-header">
+                <div id="score" class="score-display">
+                    <span class="score-value">0</span>
+                    <span class="level-badge">Уровень 1</span>
+                </div>
+                
+                <div class="game-controls">
+                    <button id="start-btn" class="btn control-btn">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                    <button id="pause-btn" class="btn control-btn">
+                        <i class="fas fa-pause"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <canvas id="game-canvas"></canvas>
+            
+            <!-- Экран паузы -->
+            <div id="pause-overlay" class="overlay pause-overlay">
+                <div class="overlay-content">
+                    <h2><i class="fas fa-pause"></i> ПАУЗА</h2>
+                    <button id="resume-btn" class="btn resume-btn">
+                        <span>Продолжить</span>
+                        <i class="fas fa-play"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Экран Game Over -->
+            <div id="game-over-screen" class="screen overlay game-over-screen">
+                <div class="screen-content">
+                    <div class="game-over-header">
+                        <i class="fas fa-skull"></i>
+                        <h2>ИГРА ОКОНЧЕНА</h2>
+                    </div>
+                    
+                    <div id="final-score" class="final-score">
+                        <span>Ваш счет:</span>
+                        <span class="score-value">0</span>
+                    </div>
+                    
+                    <div id="restart-prompt" class="restart-prompt">
+                        Нажмите <kbd>ПРОБЕЛ</kbd> или <kbd>START</kbd> чтобы продолжить
+                    </div>
+                    
+                    <button id="restart-btn" class="btn restart-btn">
+                        <span>Играть снова</span>
+                        <i class="fas fa-redo"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Мобильное управление -->
+            <div id="mobile-controls" class="mobile-controls">
+                <div class="mobile-row">
+                    <button id="up-btn" class="mobile-btn up">
+                        <i class="fas fa-arrow-up"></i>
+                    </button>
+                </div>
+                <div class="mobile-row">
+                    <button id="left-btn" class="mobile-btn left">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <button id="right-btn" class="mobile-btn right">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="mobile-row">
+                    <button id="down-btn" class="mobile-btn down">
+                        <i class="fas fa-arrow-down"></i>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
