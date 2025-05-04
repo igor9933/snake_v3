@@ -78,17 +78,28 @@ function generateObstacles() {
 
     for (let i = 0; i < obstacleCount; i++) {
         let obstacle;
-        do {
+        let validPosition = false;
+        let attempts = 0;
+        const maxAttempts = 100;
+
+        while (!validPosition && attempts < maxAttempts) {
             obstacle = {
                 x: Math.floor(Math.random() * gridSize),
                 y: Math.floor(Math.random() * gridSize)
             };
-        } while (
-            snake.some(segment => segment.x === obstacle.x && segment.y === obstacle.y) ||
-            (food.x === obstacle.x && food.y === obstacle.y)
-        );
+            
+            // Проверяем, чтобы препятствие не накладывалось на змейку, еду или другие препятствия
+            const onSnake = snake.some(segment => segment.x === obstacle.x && segment.y === obstacle.y);
+            const onFood = (food.x === obstacle.x && food.y === obstacle.y);
+            const onOtherObstacle = obstacles.some(obs => obs.x === obstacle.x && obs.y === obstacle.y);
+            
+            validPosition = !onSnake && !onFood && !onOtherObstacle;
+            attempts++;
+        }
 
-        obstacles.push(obstacle);
+        if (validPosition) {
+            obstacles.push(obstacle);
+        }
     }
 }
 
@@ -295,7 +306,7 @@ function drawDragonBody(x, y, segmentIndex, totalSegments) {
     );
     ctx.fill();
 
-    // Шипы на спине дракона
+    // Шипы на спине дракона (только на верхней части)
     if (segmentIndex % 3 === 0) {
         ctx.fillStyle = '#4a148c';
         ctx.beginPath();
@@ -312,8 +323,20 @@ function drawDragonTail(x, y, dir) {
     const hue = (snake.length * 10) % 360;
     ctx.fillStyle = `hsl(${hue}, 80%, 50%)`;
     
+    // Определяем направление предыдущего сегмента
+    const tailIndex = snake.length - 1;
+    let tailDirection = dir;
+    
+    if (tailIndex > 0) {
+        const prevSegment = snake[tailIndex - 1];
+        if (prevSegment.x < x) tailDirection = 'left';
+        else if (prevSegment.x > x) tailDirection = 'right';
+        else if (prevSegment.y < y) tailDirection = 'up';
+        else if (prevSegment.y > y) tailDirection = 'down';
+    }
+    
     ctx.beginPath();
-    switch (dir) {
+    switch (tailDirection) {
         case 'up':
             ctx.moveTo(x * tileSize + tileSize / 2, y * tileSize);
             ctx.lineTo(x * tileSize, y * tileSize + tileSize);
@@ -478,7 +501,16 @@ function draw() {
                     tileSize - 2
                 );
             } else {
-                drawDragonTail(segment.x, segment.y, direction);
+                // Определяем направление хвоста
+                let tailDir = direction;
+                if (index > 0) {
+                    const prevSegment = snake[index - 1];
+                    if (prevSegment.x < segment.x) tailDir = 'left';
+                    else if (prevSegment.x > segment.x) tailDir = 'right';
+                    else if (prevSegment.y < segment.y) tailDir = 'up';
+                    else if (prevSegment.y > segment.y) tailDir = 'down';
+                }
+                drawDragonTail(segment.x, segment.y, tailDir);
             }
         } else {
             // Тело
