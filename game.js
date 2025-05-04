@@ -241,6 +241,30 @@ function drawDragonHead(x, y, dir) {
     ctx.beginPath();
     ctx.arc(rightEyeX, rightEyeY, eyeSize / 2, 0, Math.PI * 2);
     ctx.fill();
+
+    // Рот
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    switch (dir) {
+        case 'up':
+            ctx.moveTo(x * tileSize + tileSize / 3, y * tileSize + tileSize / 2);
+            ctx.lineTo(x * tileSize + 2 * tileSize / 3, y * tileSize + tileSize / 2);
+            break;
+        case 'down':
+            ctx.moveTo(x * tileSize + tileSize / 3, y * tileSize + tileSize / 2);
+            ctx.lineTo(x * tileSize + 2 * tileSize / 3, y * tileSize + tileSize / 2);
+            break;
+        case 'left':
+            ctx.moveTo(x * tileSize + tileSize / 2, y * tileSize + tileSize / 3);
+            ctx.lineTo(x * tileSize + tileSize / 2, y * tileSize + 2 * tileSize / 3);
+            break;
+        case 'right':
+            ctx.moveTo(x * tileSize + tileSize / 2, y * tileSize + tileSize / 3);
+            ctx.lineTo(x * tileSize + tileSize / 2, y * tileSize + 2 * tileSize / 3);
+            break;
+    }
+    ctx.stroke();
 }
 
 // Отрисовка тела дракона
@@ -269,6 +293,49 @@ function drawDragonBody(x, y, segmentIndex, totalSegments) {
         0,
         Math.PI * 2
     );
+    ctx.fill();
+
+    // Шипы на спине дракона
+    if (segmentIndex % 3 === 0) {
+        ctx.fillStyle = '#4a148c';
+        ctx.beginPath();
+        ctx.moveTo(x * tileSize + tileSize / 2, y * tileSize);
+        ctx.lineTo(x * tileSize + tileSize / 3, y * tileSize + tileSize / 3);
+        ctx.lineTo(x * tileSize + 2 * tileSize / 3, y * tileSize + tileSize / 3);
+        ctx.closePath();
+        ctx.fill();
+    }
+}
+
+// Отрисовка хвоста дракона
+function drawDragonTail(x, y, dir) {
+    const hue = (snake.length * 10) % 360;
+    ctx.fillStyle = `hsl(${hue}, 80%, 50%)`;
+    
+    ctx.beginPath();
+    switch (dir) {
+        case 'up':
+            ctx.moveTo(x * tileSize + tileSize / 2, y * tileSize);
+            ctx.lineTo(x * tileSize, y * tileSize + tileSize);
+            ctx.lineTo(x * tileSize + tileSize, y * tileSize + tileSize);
+            break;
+        case 'down':
+            ctx.moveTo(x * tileSize + tileSize / 2, y * tileSize + tileSize);
+            ctx.lineTo(x * tileSize, y * tileSize);
+            ctx.lineTo(x * tileSize + tileSize, y * tileSize);
+            break;
+        case 'left':
+            ctx.moveTo(x * tileSize, y * tileSize + tileSize / 2);
+            ctx.lineTo(x * tileSize + tileSize, y * tileSize);
+            ctx.lineTo(x * tileSize + tileSize, y * tileSize + tileSize);
+            break;
+        case 'right':
+            ctx.moveTo(x * tileSize + tileSize, y * tileSize + tileSize / 2);
+            ctx.lineTo(x * tileSize, y * tileSize);
+            ctx.lineTo(x * tileSize, y * tileSize + tileSize);
+            break;
+    }
+    ctx.closePath();
     ctx.fill();
 }
 
@@ -336,7 +403,9 @@ function draw() {
     // Змейка/Дракон
     snake.forEach((segment, index) => {
         if (index === 0) {
+            // Голова
             if (currentLevel === 1) {
+                // Обычная змейка
                 ctx.fillStyle = '#2a5885';
                 ctx.fillRect(
                     segment.x * tileSize + 1,
@@ -395,9 +464,24 @@ function draw() {
                 ctx.arc(rightEyeX, rightEyeY, eyeSize / 2, 0, Math.PI * 2);
                 ctx.fill();
             } else {
+                // Голова дракона
                 drawDragonHead(segment.x, segment.y, direction);
             }
+        } else if (index === snake.length - 1) {
+            // Хвост
+            if (currentLevel === 1) {
+                ctx.fillStyle = '#4a76a8';
+                ctx.fillRect(
+                    segment.x * tileSize + 1,
+                    segment.y * tileSize + 1,
+                    tileSize - 2,
+                    tileSize - 2
+                );
+            } else {
+                drawDragonTail(segment.x, segment.y, direction);
+            }
         } else {
+            // Тело
             if (currentLevel === 1) {
                 ctx.fillStyle = '#4a76a8';
                 ctx.fillRect(
