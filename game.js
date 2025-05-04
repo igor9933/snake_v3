@@ -45,8 +45,8 @@ let currentLevel = 1;
 let obstacles = [];
 let gamepadConnected = false;
 
-// Змейка/Дракон
-let snake = [
+// Дракон
+let dragon = [
     { x: 7, y: 7 },
     { x: 6, y: 7 },
     { x: 5, y: 7 }
@@ -73,7 +73,7 @@ let eatAnimation = {
 // Генерация препятствий
 function generateObstacles() {
     obstacles = [];
-    const obstacleCount = 10;
+    const obstacleCount = currentLevel === 2 ? 10 : 0;
 
     for (let i = 0; i < obstacleCount; i++) {
         let obstacle;
@@ -87,11 +87,11 @@ function generateObstacles() {
                 y: Math.floor(Math.random() * gridSize)
             };
             
-            const onSnake = snake.some(segment => segment.x === obstacle.x && segment.y === obstacle.y);
+            const onDragon = dragon.some(segment => segment.x === obstacle.x && segment.y === obstacle.y);
             const onFood = (food.x === obstacle.x && food.y === obstacle.y);
             const onOtherObstacle = obstacles.some(obs => obs.x === obstacle.x && obs.y === obstacle.y);
             
-            validPosition = !onSnake && !onFood && !onOtherObstacle;
+            validPosition = !onDragon && !onFood && !onOtherObstacle;
             attempts++;
         }
 
@@ -101,9 +101,9 @@ function generateObstacles() {
     }
 }
 
-// Проверка еды на змейке
-function isFoodOnSnake() {
-    return snake.some(segment => segment.x === food.x && segment.y === food.y);
+// Проверка еды на драконе
+function isFoodOnDragon() {
+    return dragon.some(segment => segment.x === food.x && segment.y === food.y);
 }
 
 // Генерация еды
@@ -119,9 +119,10 @@ function generateFood() {
         attempts++;
 
         if (attempts >= maxAttempts) {
+            // Если не удалось найти свободное место, ищем вручную
             for (let y = 0; y < gridSize; y++) {
                 for (let x = 0; x < gridSize; x++) {
-                    const cellFree = !snake.some(s => s.x === x && s.y === y) &&
+                    const cellFree = !dragon.some(s => s.x === x && s.y === y) &&
                         !(currentLevel === 2 && obstacles.some(o => o.x === x && o.y === y));
                     if (cellFree) {
                         food = { x, y };
@@ -131,7 +132,7 @@ function generateFood() {
             }
             break;
         }
-    } while (isFoodOnSnake() ||
+    } while (isFoodOnDragon() ||
         (currentLevel === 2 && obstacles.some(obs => obs.x === food.x && obs.y === food.y)));
 }
 
@@ -143,6 +144,99 @@ function updateEatAnimation() {
             eatAnimation.active = false;
         }
     }
+}
+
+// Рисуем голову дракона
+function drawDragonHead(x, y) {
+    const centerX = x * tileSize + tileSize / 2;
+    const centerY = y * tileSize + tileSize / 2;
+    const size = tileSize / 2 - 1;
+    
+    // Основная голова
+    ctx.fillStyle = currentLevel === 1 ? '#4a148c' : '#6a1b9a';
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, size, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Глаза
+    ctx.fillStyle = '#fff';
+    let eyeOffsetX = 0;
+    let eyeOffsetY = -size / 3;
+    
+    if (direction === 'right') eyeOffsetX = size / 3;
+    else if (direction === 'left') eyeOffsetX = -size / 3;
+    else if (direction === 'up') eyeOffsetY = -size / 3;
+    else if (direction === 'down') eyeOffsetY = size / 3;
+    
+    ctx.beginPath();
+    ctx.arc(centerX + eyeOffsetX, centerY + eyeOffsetY, size / 4, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Зрачки
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.arc(centerX + eyeOffsetX, centerY + eyeOffsetY, size / 8, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Рот (только если смотрит вправо/влево)
+    if (direction === 'right' || direction === 'left') {
+        ctx.strokeStyle = '#ff5252';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, size / 2, 0.2 * Math.PI, 0.8 * Math.PI, direction === 'left');
+        ctx.stroke();
+    }
+}
+
+// Рисуем тело дракона
+function drawDragonBody(x, y, index) {
+    const centerX = x * tileSize + tileSize / 2;
+    const centerY = y * tileSize + tileSize / 2;
+    const size = tileSize / 2 - 1;
+    
+    // Чешуя дракона
+    const hue = (index * 10) % 360;
+    ctx.fillStyle = `hsl(${hue}, 80%, 50%)`;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, size, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Детали чешуи
+    ctx.strokeStyle = `hsl(${hue}, 80%, 30%)`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, size, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    // Штрихи на чешуе
+    for (let i = 0; i < 4; i++) {
+        const angle = i * Math.PI / 2;
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(
+            centerX + Math.cos(angle) * size * 0.7,
+            centerY + Math.sin(angle) * size * 0.7
+        );
+        ctx.stroke();
+    }
+}
+
+// Рисуем хвост дракона
+function drawDragonTail(x, y) {
+    const centerX = x * tileSize + tileSize / 2;
+    const centerY = y * tileSize + tileSize / 2;
+    const size = tileSize / 2 - 1;
+    
+    ctx.fillStyle = currentLevel === 1 ? '#7b1fa2' : '#9c27b0';
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, size * 0.8, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Кончик хвоста
+    ctx.fillStyle = '#ff9800';
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, size * 0.4, 0, Math.PI * 2);
+    ctx.fill();
 }
 
 // Отрисовка игры
@@ -180,68 +274,82 @@ function draw() {
                 Math.PI * 2
             );
             ctx.fill();
+            
+            // Текстура камней
+            ctx.strokeStyle = '#3e2723';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 3; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const length = tileSize / 3;
+                ctx.beginPath();
+                ctx.moveTo(
+                    obs.x * tileSize + tileSize / 2,
+                    obs.y * tileSize + tileSize / 2
+                );
+                ctx.lineTo(
+                    obs.x * tileSize + tileSize / 2 + Math.cos(angle) * length,
+                    obs.y * tileSize + tileSize / 2 + Math.sin(angle) * length
+                );
+                ctx.stroke();
+            }
         });
     }
 
-    // Змейка/Дракон
-    snake.forEach((segment, index) => {
+    // Дракон
+    dragon.forEach((segment, index) => {
         if (index === 0) {
             // Голова
-            ctx.fillStyle = currentLevel === 1 ? '#2a5885' : '#4a148c';
-            ctx.beginPath();
-            ctx.arc(
-                segment.x * tileSize + tileSize / 2,
-                segment.y * tileSize + tileSize / 2,
-                tileSize / 2 - 1,
-                0,
-                Math.PI * 2
-            );
-            ctx.fill();
-        } else if (index === snake.length - 1) {
+            drawDragonHead(segment.x, segment.y);
+        } else if (index === dragon.length - 1) {
             // Хвост
-            ctx.fillStyle = currentLevel === 1 ? '#4a76a8' : '#4a148c';
-            ctx.beginPath();
-            ctx.arc(
-                segment.x * tileSize + tileSize / 2,
-                segment.y * tileSize + tileSize / 2,
-                tileSize / 2 - 1,
-                0,
-                Math.PI * 2
-            );
-            ctx.fill();
+            drawDragonTail(segment.x, segment.y);
         } else {
             // Тело
-            ctx.fillStyle = currentLevel === 1 ? '#4a76a8' : `hsl(${(index * 10) % 360}, 80%, 50%)`;
-            ctx.beginPath();
-            ctx.arc(
-                segment.x * tileSize + tileSize / 2,
-                segment.y * tileSize + tileSize / 2,
-                tileSize / 2 - 1,
-                0,
-                Math.PI * 2
-            );
-            ctx.fill();
+            drawDragonBody(segment.x, segment.y, index);
         }
     });
 
-    // Еда
+    // Еда (драгоценный камень)
     if (!eatAnimation.active) {
-        ctx.fillStyle = currentLevel === 1 ? '#e64646' : '#ffcc00';
-        ctx.beginPath();
-        ctx.arc(
-            food.x * tileSize + tileSize / 2,
-            food.y * tileSize + tileSize / 2,
-            tileSize / 2 - 1,
-            0,
-            Math.PI * 2
+        const centerX = food.x * tileSize + tileSize / 2;
+        const centerY = food.y * tileSize + tileSize / 2;
+        const size = tileSize / 2 - 1;
+        
+        // Градиент для драгоценного камня
+        const gradient = ctx.createRadialGradient(
+            centerX - size/3, centerY - size/3, size/4,
+            centerX, centerY, size
         );
+        gradient.addColorStop(0, currentLevel === 1 ? '#ff5252' : '#ffeb3b');
+        gradient.addColorStop(1, currentLevel === 1 ? '#d50000' : '#ff9800');
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        
+        // Форма драгоценного камня
+        ctx.moveTo(centerX, centerY - size);
+        ctx.lineTo(centerX + size * 0.7, centerY - size * 0.3);
+        ctx.lineTo(centerX + size * 0.5, centerY + size * 0.8);
+        ctx.lineTo(centerX - size * 0.5, centerY + size * 0.8);
+        ctx.lineTo(centerX - size * 0.7, centerY - size * 0.3);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Блики
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY - size * 0.7);
+        ctx.lineTo(centerX + size * 0.3, centerY - size * 0.5);
+        ctx.lineTo(centerX + size * 0.2, centerY - size * 0.2);
+        ctx.lineTo(centerX - size * 0.2, centerY - size * 0.4);
+        ctx.closePath();
         ctx.fill();
     }
 
     // Анимация поедания
     if (eatAnimation.active) {
         const size = (tileSize / 2) * (1 - eatAnimation.progress / eatAnimation.maxProgress);
-        ctx.fillStyle = currentLevel === 1 ? '#ffcc00' : '#ff0000';
+        ctx.fillStyle = currentLevel === 1 ? 'rgba(255, 235, 59, 0.7)' : 'rgba(255, 0, 0, 0.7)';
         ctx.beginPath();
         ctx.arc(
             eatAnimation.x * tileSize + tileSize / 2,
@@ -259,7 +367,7 @@ function update() {
     updateEatAnimation();
     direction = nextDirection;
 
-    const head = { x: snake[0].x, y: snake[0].y };
+    const head = { x: dragon[0].x, y: dragon[0].y };
 
     switch (direction) {
         case 'up': head.y -= 1; break;
@@ -270,13 +378,13 @@ function update() {
 
     // Проверка столкновений
     if (head.x < 0 || head.x >= gridSize || head.y < 0 || head.y >= gridSize ||
-        snake.some((segment, index) => index !== 0 && segment.x === head.x && segment.y === head.y) ||
+        dragon.some((segment, index) => index !== 0 && segment.x === head.x && segment.y === head.y) ||
         (currentLevel === 2 && obstacles.some(obs => obs.x === head.x && obs.y === head.y))) {
         gameOver();
         return;
     }
 
-    snake.unshift(head);
+    dragon.unshift(head);
 
     if (head.x === food.x && head.y === food.y) {
         eatAnimation.active = true;
@@ -305,7 +413,7 @@ function update() {
 
         generateFood();
     } else {
-        snake.pop();
+        dragon.pop();
     }
 }
 
@@ -327,7 +435,7 @@ function gameOver() {
 
 // Сброс игры
 function resetGame() {
-    snake = [
+    dragon = [
         { x: 7, y: 7 },
         { x: 6, y: 7 },
         { x: 5, y: 7 }
