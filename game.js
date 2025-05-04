@@ -76,11 +76,12 @@ function generateObstacles() {
     if (currentLevel !== 2) return;
 
     const obstacleCount = 10;
+    const maxAttempts = 100;
+
     for (let i = 0; i < obstacleCount; i++) {
         let obstacle;
         let validPosition = false;
         let attempts = 0;
-        const maxAttempts = 100;
 
         while (!validPosition && attempts < maxAttempts) {
             obstacle = {
@@ -97,10 +98,9 @@ function generateObstacles() {
                 obs.x === obstacle.x && obs.y === obstacle.y
             );
             
-            // Также проверяем, чтобы препятствия не блокировали проходы полностью
-            const blocksPath = checkIfBlocksPath(obstacle);
-            
-            validPosition = !onSnake && !onFood && !onOtherObstacle && !blocksPath;
+            // Проверяем, чтобы препятствие не блокировало проход
+            validPosition = !onSnake && !onFood && !onOtherObstacle && 
+                           !isPositionBlocking(obstacle.x, obstacle.y);
             attempts++;
         }
 
@@ -110,27 +110,33 @@ function generateObstacles() {
     }
 }
 
-// Проверка, не блокирует ли препятствие важные пути
-function checkIfBlocksPath(obstacle) {
-    // Проверяем 4 направления вокруг препятствия
+// Проверка, блокирует ли позиция проход
+function isPositionBlocking(x, y) {
+    // Проверяем все 4 направления
     const directions = [
-        {x: obstacle.x + 1, y: obstacle.y},
-        {x: obstacle.x - 1, y: obstacle.y},
-        {x: obstacle.x, y: obstacle.y + 1},
-        {x: obstacle.x, y: obstacle.y - 1}
+        {dx: 1, dy: 0}, {dx: -1, dy: 0},
+        {dx: 0, dy: 1}, {dx: 0, dy: -1}
     ];
     
-    // Если все направления заблокированы (стены или другие препятствия)
-    return directions.every(pos => 
-        pos.x < 0 || pos.x >= gridSize || 
-        pos.y < 0 || pos.y >= gridSize ||
-        obstacles.some(obs => obs.x === pos.x && obs.y === pos.y)
-    );
+    // Если со всех сторон стены или препятствия - позиция блокирующая
+    return directions.every(dir => {
+        const newX = x + dir.dx;
+        const newY = y + dir.dy;
+        
+        // Если выходит за границы - считаем стеной
+        if (newX < 0 || newX >= gridSize || newY < 0 || newY >= gridSize) {
+            return true;
+        }
+        
+        // Проверяем на препятствия
+        return obstacles.some(obs => obs.x === newX && obs.y === newY);
+    });
 }
 
-// Проверка еды на змейке
-function isFoodOnSnake() {
-    return snake.some(segment => segment.x === food.x && segment.y === food.y);
+// Проверка еды на змейке или препятствиях
+function isFoodOnInvalidPosition() {
+    return snake.some(segment => segment.x === food.x && segment.y === food.y) ||
+           (currentLevel === 2 && obstacles.some(obs => obs.x === food.x && obs.y === food.y));
 }
 
 // Генерация еды
@@ -157,10 +163,11 @@ function generateFood() {
                     }
                 }
             }
+            // Если вообще нет свободных клеток (маловероятно)
+            food = { x: -1, y: -1 };
             break;
         }
-    } while (isFoodOnSnake() ||
-        (currentLevel === 2 && obstacles.some(obs => obs.x === food.x && obs.y === food.y)));
+    } while (isFoodOnInvalidPosition());
 }
 
 // Обновление анимации
@@ -343,7 +350,7 @@ function draw() {
     });
 
     // Еда
-    if (!eatAnimation.active) {
+    if (!eatAnimation.active && food.x >= 0 && food.y >= 0) {
         const centerX = food.x * tileSize + tileSize / 2;
         const centerY = food.y * tileSize + tileSize / 2;
         const size = tileSize / 2 - 1;
