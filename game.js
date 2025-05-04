@@ -261,6 +261,25 @@ function drawDragonHead(x, y) {
     ctx.beginPath();
     ctx.arc(centerX + eyeOffsetX, centerY + eyeOffsetY, size / 8, 0, Math.PI * 2);
     ctx.fill();
+    
+    // Рот
+    ctx.strokeStyle = '#ff0000';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    if (direction === 'right') {
+        ctx.moveTo(centerX + size/2, centerY);
+        ctx.lineTo(centerX + size/3, centerY);
+    } else if (direction === 'left') {
+        ctx.moveTo(centerX - size/2, centerY);
+        ctx.lineTo(centerX - size/3, centerY);
+    } else if (direction === 'up') {
+        ctx.moveTo(centerX, centerY - size/2);
+        ctx.lineTo(centerX, centerY - size/3);
+    } else if (direction === 'down') {
+        ctx.moveTo(centerX, centerY + size/2);
+        ctx.lineTo(centerX, centerY + size/3);
+    }
+    ctx.stroke();
 }
 
 // Рисуем тело дракона (для уровня 2)
@@ -274,6 +293,21 @@ function drawDragonBody(x, y, index) {
     ctx.beginPath();
     ctx.arc(centerX, centerY, size, 0, Math.PI * 2);
     ctx.fill();
+    
+    // Чешуя
+    ctx.strokeStyle = `hsl(${hue}, 80%, 30%)`;
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 6; i++) {
+        const angle = (i * Math.PI * 2) / 6;
+        const startX = centerX + Math.cos(angle) * size * 0.7;
+        const startY = centerY + Math.sin(angle) * size * 0.7;
+        const endX = centerX + Math.cos(angle) * size * 0.9;
+        const endY = centerY + Math.sin(angle) * size * 0.9;
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+    }
 }
 
 // Рисуем хвост дракона (для уровня 2)
@@ -292,6 +326,22 @@ function drawDragonTail(x, y) {
     ctx.beginPath();
     ctx.arc(centerX, centerY, size * 0.4, 0, Math.PI * 2);
     ctx.fill();
+    
+    // Шипы на хвосте
+    ctx.fillStyle = '#ff5722';
+    if (direction === 'right' || direction === 'left') {
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY - size * 0.8);
+        ctx.lineTo(centerX + size * 0.4, centerY);
+        ctx.lineTo(centerX, centerY + size * 0.8);
+        ctx.fill();
+    } else {
+        ctx.beginPath();
+        ctx.moveTo(centerX - size * 0.8, centerY);
+        ctx.lineTo(centerX, centerY + size * 0.4);
+        ctx.lineTo(centerX + size * 0.8, centerY);
+        ctx.fill();
+    }
 }
 
 // Отрисовка игры
@@ -329,6 +379,24 @@ function draw() {
                 Math.PI * 2
             );
             ctx.fill();
+            
+            // Текстура камня
+            ctx.strokeStyle = '#3d2813';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 3; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const length = tileSize / 4;
+                ctx.beginPath();
+                ctx.moveTo(
+                    obs.x * tileSize + tileSize / 2,
+                    obs.y * tileSize + tileSize / 2
+                );
+                ctx.lineTo(
+                    obs.x * tileSize + tileSize / 2 + Math.cos(angle) * length,
+                    obs.y * tileSize + tileSize / 2 + Math.sin(angle) * length
+                );
+                ctx.stroke();
+            }
         });
     }
 
@@ -361,6 +429,14 @@ function draw() {
             ctx.beginPath();
             ctx.arc(centerX, centerY, size, 0, Math.PI * 2);
             ctx.fill();
+            
+            // Листик
+            ctx.fillStyle = '#4caf50';
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY - size);
+            ctx.quadraticCurveTo(centerX + size/2, centerY - size*1.5, centerX + size/3, centerY - size);
+            ctx.quadraticCurveTo(centerX + size/2, centerY - size*0.8, centerX, centerY - size);
+            ctx.fill();
         } else {
             // Драгоценный камень для уровня 2
             const gradient = ctx.createRadialGradient(
@@ -377,6 +453,16 @@ function draw() {
             ctx.lineTo(centerX + size * 0.5, centerY + size * 0.8);
             ctx.lineTo(centerX - size * 0.5, centerY + size * 0.8);
             ctx.lineTo(centerX - size * 0.7, centerY - size * 0.3);
+            ctx.closePath();
+            ctx.fill();
+            
+            // Блики на камне
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.beginPath();
+            ctx.moveTo(centerX - size/3, centerY - size/2);
+            ctx.lineTo(centerX - size/6, centerY - size/3);
+            ctx.lineTo(centerX + size/4, centerY - size/4);
+            ctx.lineTo(centerX + size/6, centerY - size/2);
             ctx.closePath();
             ctx.fill();
         }
