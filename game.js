@@ -696,6 +696,8 @@ function resetGame() {
 
 // Пауза
 function togglePause() {
+    if (!isGameRunning) return;
+    
     isPaused = !isPaused;
     pauseOverlay.style.display = isPaused ? 'flex' : 'none';
 
@@ -780,6 +782,8 @@ function checkGamepad() {
 
 // Создание мобильного управления
 function createMobileControls() {
+    if (currentControls !== 'touch') return;
+    
     mobileControls.style.display = 'block';
 
     // Удаляем старые обработчики перед добавлением новых
@@ -942,4 +946,4 @@ function mainLoop(timestamp) {
 }
 
 // Запуск игры
-mainLoop();
+requestAnimationFrame(mainLoop);
