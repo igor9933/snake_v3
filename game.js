@@ -88,11 +88,19 @@ function generateObstacles() {
                 y: Math.floor(Math.random() * gridSize)
             };
             
-            const onSnake = snake.some(segment => segment.x === obstacle.x && segment.y === obstacle.y);
-            const onFood = (food.x === obstacle.x && food.y === obstacle.y);
-            const onOtherObstacle = obstacles.some(obs => obs.x === obstacle.x && obs.y === obstacle.y);
+            // Проверяем, чтобы препятствие не было на змейке, еде или других препятствиях
+            const onSnake = snake.some(segment => 
+                segment.x === obstacle.x && segment.y === obstacle.y
+            );
+            const onFood = food.x === obstacle.x && food.y === obstacle.y;
+            const onOtherObstacle = obstacles.some(obs => 
+                obs.x === obstacle.x && obs.y === obstacle.y
+            );
             
-            validPosition = !onSnake && !onFood && !onOtherObstacle;
+            // Также проверяем, чтобы препятствия не блокировали проходы полностью
+            const blocksPath = checkIfBlocksPath(obstacle);
+            
+            validPosition = !onSnake && !onFood && !onOtherObstacle && !blocksPath;
             attempts++;
         }
 
@@ -100,6 +108,24 @@ function generateObstacles() {
             obstacles.push(obstacle);
         }
     }
+}
+
+// Проверка, не блокирует ли препятствие важные пути
+function checkIfBlocksPath(obstacle) {
+    // Проверяем 4 направления вокруг препятствия
+    const directions = [
+        {x: obstacle.x + 1, y: obstacle.y},
+        {x: obstacle.x - 1, y: obstacle.y},
+        {x: obstacle.x, y: obstacle.y + 1},
+        {x: obstacle.x, y: obstacle.y - 1}
+    ];
+    
+    // Если все направления заблокированы (стены или другие препятствия)
+    return directions.every(pos => 
+        pos.x < 0 || pos.x >= gridSize || 
+        pos.y < 0 || pos.y >= gridSize ||
+        obstacles.some(obs => obs.x === pos.x && obs.y === pos.y)
+    );
 }
 
 // Проверка еды на змейке
@@ -120,6 +146,7 @@ function generateFood() {
         attempts++;
 
         if (attempts >= maxAttempts) {
+            // Если не удалось найти свободное место случайно, ищем вручную
             for (let y = 0; y < gridSize; y++) {
                 for (let x = 0; x < gridSize; x++) {
                     const cellFree = !snake.some(s => s.x === x && s.y === y) &&
