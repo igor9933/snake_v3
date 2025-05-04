@@ -514,21 +514,26 @@ function update() {
         eatAnimation.y = food.y;
         eatAnimation.progress = 0;
 
-        score += 10;
+        score += currentLevel === 1 ? 10 : 20; // На втором уровне даем больше очков
         scoreElement.textContent = `Счет: ${score} | Уровень: ${currentLevel}`;
         finalScore.textContent = `Ваш счет: ${score}`;
 
         // Переход на уровень 2
-        if (levelSelect.value === '1' && score >= 200 && currentLevel === 1) {
+        if (levelSelect.value === '1' && score >= 100 && currentLevel === 1) { // Уменьшил порог для перехода
             currentLevel = 2;
             generateObstacles();
-            gameSpeed = 120;
+            gameSpeed = 130; // Сделал скорость более плавной
             clearInterval(gameInterval);
             gameInterval = setInterval(gameLoop, gameSpeed);
         }
 
-        if (score % 50 === 0 && gameSpeed > 50) {
-            gameSpeed -= 10;
+        // Увеличиваем скорость постепенно
+        if (currentLevel === 1 && score % 30 === 0 && gameSpeed > 70) {
+            gameSpeed -= 5;
+            clearInterval(gameInterval);
+            gameInterval = setInterval(gameLoop, gameSpeed);
+        } else if (currentLevel === 2 && score % 40 === 0 && gameSpeed > 60) {
+            gameSpeed -= 5;
             clearInterval(gameInterval);
             gameInterval = setInterval(gameLoop, gameSpeed);
         }
@@ -570,7 +575,7 @@ function resetGame() {
 
     if (currentLevel === 2) {
         generateObstacles();
-        gameSpeed = 120;
+        gameSpeed = 130; // Более плавная начальная скорость для 2 уровня
     } else {
         gameSpeed = 150;
     }
