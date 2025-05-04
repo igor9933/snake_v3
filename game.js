@@ -44,7 +44,6 @@ let currentControls = 'keyboard';
 let currentLevel = 1;
 let obstacles = [];
 let gamepadConnected = false;
-let lastTime = 0;
 
 // Змейка/Дракон
 let snake = [
@@ -88,7 +87,6 @@ function generateObstacles() {
                 y: Math.floor(Math.random() * gridSize)
             };
             
-            // Проверяем, чтобы препятствие не накладывалось на змейку, еду или другие препятствия
             const onSnake = snake.some(segment => segment.x === obstacle.x && segment.y === obstacle.y);
             const onFood = (food.x === obstacle.x && food.y === obstacle.y);
             const onOtherObstacle = obstacles.some(obs => obs.x === obstacle.x && obs.y === obstacle.y);
@@ -121,7 +119,6 @@ function generateFood() {
         attempts++;
 
         if (attempts >= maxAttempts) {
-            // Если не удалось найти свободное место, размещаем в первом попавшемся
             for (let y = 0; y < gridSize; y++) {
                 for (let x = 0; x < gridSize; x++) {
                     const cellFree = !snake.some(s => s.x === x && s.y === y) &&
@@ -146,220 +143,6 @@ function updateEatAnimation() {
             eatAnimation.active = false;
         }
     }
-}
-
-// Отрисовка головы дракона
-function drawDragonHead(x, y, dir) {
-    ctx.fillStyle = '#4a148c';
-    ctx.beginPath();
-
-    // Форма головы зависит от направления
-    switch (dir) {
-        case 'up':
-            ctx.ellipse(
-                x * tileSize + tileSize / 2,
-                y * tileSize + tileSize / 2,
-                tileSize / 2,
-                tileSize / 3,
-                0,
-                0,
-                Math.PI * 2
-            );
-            break;
-        case 'down':
-            ctx.ellipse(
-                x * tileSize + tileSize / 2,
-                y * tileSize + tileSize / 2,
-                tileSize / 2,
-                tileSize / 3,
-                0,
-                0,
-                Math.PI * 2
-            );
-            break;
-        case 'left':
-            ctx.ellipse(
-                x * tileSize + tileSize / 2,
-                y * tileSize + tileSize / 2,
-                tileSize / 3,
-                tileSize / 2,
-                0,
-                0,
-                Math.PI * 2
-            );
-            break;
-        case 'right':
-            ctx.ellipse(
-                x * tileSize + tileSize / 2,
-                y * tileSize + tileSize / 2,
-                tileSize / 3,
-                tileSize / 2,
-                0,
-                0,
-                Math.PI * 2
-            );
-            break;
-    }
-
-    ctx.fill();
-
-    // Глаза
-    ctx.fillStyle = 'white';
-    const eyeSize = tileSize / 5;
-    let leftEyeX, leftEyeY, rightEyeX, rightEyeY;
-
-    switch (dir) {
-        case 'up':
-            leftEyeX = x * tileSize + tileSize / 3;
-            leftEyeY = y * tileSize + tileSize / 3;
-            rightEyeX = x * tileSize + 2 * tileSize / 3;
-            rightEyeY = y * tileSize + tileSize / 3;
-            break;
-        case 'down':
-            leftEyeX = x * tileSize + tileSize / 3;
-            leftEyeY = y * tileSize + 2 * tileSize / 3;
-            rightEyeX = x * tileSize + 2 * tileSize / 3;
-            rightEyeY = y * tileSize + 2 * tileSize / 3;
-            break;
-        case 'left':
-            leftEyeX = x * tileSize + tileSize / 3;
-            leftEyeY = y * tileSize + tileSize / 3;
-            rightEyeX = x * tileSize + tileSize / 3;
-            rightEyeY = y * tileSize + 2 * tileSize / 3;
-            break;
-        case 'right':
-            leftEyeX = x * tileSize + 2 * tileSize / 3;
-            leftEyeY = y * tileSize + tileSize / 3;
-            rightEyeX = x * tileSize + 2 * tileSize / 3;
-            rightEyeY = y * tileSize + 2 * tileSize / 3;
-            break;
-    }
-
-    ctx.beginPath();
-    ctx.arc(leftEyeX, leftEyeY, eyeSize, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.arc(rightEyeX, rightEyeY, eyeSize, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Зрачки
-    ctx.fillStyle = 'black';
-    ctx.beginPath();
-    ctx.arc(leftEyeX, leftEyeY, eyeSize / 2, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.arc(rightEyeX, rightEyeY, eyeSize / 2, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Рот
-    ctx.strokeStyle = 'red';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    switch (dir) {
-        case 'up':
-            ctx.moveTo(x * tileSize + tileSize / 3, y * tileSize + tileSize / 2);
-            ctx.lineTo(x * tileSize + 2 * tileSize / 3, y * tileSize + tileSize / 2);
-            break;
-        case 'down':
-            ctx.moveTo(x * tileSize + tileSize / 3, y * tileSize + tileSize / 2);
-            ctx.lineTo(x * tileSize + 2 * tileSize / 3, y * tileSize + tileSize / 2);
-            break;
-        case 'left':
-            ctx.moveTo(x * tileSize + tileSize / 2, y * tileSize + tileSize / 3);
-            ctx.lineTo(x * tileSize + tileSize / 2, y * tileSize + 2 * tileSize / 3);
-            break;
-        case 'right':
-            ctx.moveTo(x * tileSize + tileSize / 2, y * tileSize + tileSize / 3);
-            ctx.lineTo(x * tileSize + tileSize / 2, y * tileSize + 2 * tileSize / 3);
-            break;
-    }
-    ctx.stroke();
-}
-
-// Отрисовка тела дракона
-function drawDragonBody(x, y, segmentIndex, totalSegments) {
-    const hue = (segmentIndex * 10) % 360;
-    ctx.fillStyle = `hsl(${hue}, 80%, 50%)`;
-
-    // Чешуя
-    ctx.beginPath();
-    ctx.arc(
-        x * tileSize + tileSize / 2,
-        y * tileSize + tileSize / 2,
-        tileSize / 2 - 1,
-        0,
-        Math.PI * 2
-    );
-    ctx.fill();
-
-    // Детали чешуи
-    ctx.fillStyle = `hsl(${hue}, 80%, 70%)`;
-    ctx.beginPath();
-    ctx.arc(
-        x * tileSize + tileSize / 2,
-        y * tileSize + tileSize / 2,
-        tileSize / 4,
-        0,
-        Math.PI * 2
-    );
-    ctx.fill();
-
-    // Шипы на спине дракона (только на верхней части)
-    if (segmentIndex % 3 === 0) {
-        ctx.fillStyle = '#4a148c';
-        ctx.beginPath();
-        ctx.moveTo(x * tileSize + tileSize / 2, y * tileSize);
-        ctx.lineTo(x * tileSize + tileSize / 3, y * tileSize + tileSize / 3);
-        ctx.lineTo(x * tileSize + 2 * tileSize / 3, y * tileSize + tileSize / 3);
-        ctx.closePath();
-        ctx.fill();
-    }
-}
-
-// Отрисовка хвоста дракона
-function drawDragonTail(x, y, dir) {
-    const hue = (snake.length * 10) % 360;
-    ctx.fillStyle = `hsl(${hue}, 80%, 50%)`;
-    
-    // Определяем направление предыдущего сегмента
-    const tailIndex = snake.length - 1;
-    let tailDirection = dir;
-    
-    if (tailIndex > 0) {
-        const prevSegment = snake[tailIndex - 1];
-        if (prevSegment.x < x) tailDirection = 'left';
-        else if (prevSegment.x > x) tailDirection = 'right';
-        else if (prevSegment.y < y) tailDirection = 'up';
-        else if (prevSegment.y > y) tailDirection = 'down';
-    }
-    
-    ctx.beginPath();
-    switch (tailDirection) {
-        case 'up':
-            ctx.moveTo(x * tileSize + tileSize / 2, y * tileSize);
-            ctx.lineTo(x * tileSize, y * tileSize + tileSize);
-            ctx.lineTo(x * tileSize + tileSize, y * tileSize + tileSize);
-            break;
-        case 'down':
-            ctx.moveTo(x * tileSize + tileSize / 2, y * tileSize + tileSize);
-            ctx.lineTo(x * tileSize, y * tileSize);
-            ctx.lineTo(x * tileSize + tileSize, y * tileSize);
-            break;
-        case 'left':
-            ctx.moveTo(x * tileSize, y * tileSize + tileSize / 2);
-            ctx.lineTo(x * tileSize + tileSize, y * tileSize);
-            ctx.lineTo(x * tileSize + tileSize, y * tileSize + tileSize);
-            break;
-        case 'right':
-            ctx.moveTo(x * tileSize + tileSize, y * tileSize + tileSize / 2);
-            ctx.lineTo(x * tileSize, y * tileSize);
-            ctx.lineTo(x * tileSize, y * tileSize + tileSize);
-            break;
-    }
-    ctx.closePath();
-    ctx.fill();
 }
 
 // Отрисовка игры
@@ -397,29 +180,6 @@ function draw() {
                 Math.PI * 2
             );
             ctx.fill();
-
-            ctx.fillStyle = '#3d2813';
-            ctx.beginPath();
-            ctx.arc(
-                obs.x * tileSize + tileSize / 3,
-                obs.y * tileSize + tileSize / 3,
-                tileSize / 6,
-                0,
-                Math.PI * 2
-            );
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(
-                obs.x * tileSize + 2 * tileSize / 3,
-                obs.y * tileSize + 2 * tileSize / 3,
-                tileSize / 4,
-                0,
-                Math.PI * 2
-            );
-            ctx.fill();
-
-            ctx.fillStyle = '#5d3a1a';
         });
     }
 
@@ -427,104 +187,40 @@ function draw() {
     snake.forEach((segment, index) => {
         if (index === 0) {
             // Голова
-            if (currentLevel === 1) {
-                // Обычная змейка
-                ctx.fillStyle = '#2a5885';
-                ctx.fillRect(
-                    segment.x * tileSize + 1,
-                    segment.y * tileSize + 1,
-                    tileSize - 2,
-                    tileSize - 2
-                );
-
-                // Глаза
-                ctx.fillStyle = 'white';
-                const eyeSize = tileSize / 5;
-                let leftEyeX, leftEyeY, rightEyeX, rightEyeY;
-
-                switch (direction) {
-                    case 'up':
-                        leftEyeX = segment.x * tileSize + tileSize / 3;
-                        leftEyeY = segment.y * tileSize + tileSize / 3;
-                        rightEyeX = segment.x * tileSize + 2 * tileSize / 3;
-                        rightEyeY = segment.y * tileSize + tileSize / 3;
-                        break;
-                    case 'down':
-                        leftEyeX = segment.x * tileSize + tileSize / 3;
-                        leftEyeY = segment.y * tileSize + 2 * tileSize / 3;
-                        rightEyeX = segment.x * tileSize + 2 * tileSize / 3;
-                        rightEyeY = segment.y * tileSize + 2 * tileSize / 3;
-                        break;
-                    case 'left':
-                        leftEyeX = segment.x * tileSize + tileSize / 3;
-                        leftEyeY = segment.y * tileSize + tileSize / 3;
-                        rightEyeX = segment.x * tileSize + tileSize / 3;
-                        rightEyeY = segment.y * tileSize + 2 * tileSize / 3;
-                        break;
-                    case 'right':
-                        leftEyeX = segment.x * tileSize + 2 * tileSize / 3;
-                        leftEyeY = segment.y * tileSize + tileSize / 3;
-                        rightEyeX = segment.x * tileSize + 2 * tileSize / 3;
-                        rightEyeY = segment.y * tileSize + 2 * tileSize / 3;
-                        break;
-                }
-
-                ctx.beginPath();
-                ctx.arc(leftEyeX, leftEyeY, eyeSize, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.beginPath();
-                ctx.arc(rightEyeX, rightEyeY, eyeSize, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Зрачки
-                ctx.fillStyle = 'black';
-                ctx.beginPath();
-                ctx.arc(leftEyeX, leftEyeY, eyeSize / 2, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.beginPath();
-                ctx.arc(rightEyeX, rightEyeY, eyeSize / 2, 0, Math.PI * 2);
-                ctx.fill();
-            } else {
-                // Голова дракона
-                drawDragonHead(segment.x, segment.y, direction);
-            }
+            ctx.fillStyle = currentLevel === 1 ? '#2a5885' : '#4a148c';
+            ctx.beginPath();
+            ctx.arc(
+                segment.x * tileSize + tileSize / 2,
+                segment.y * tileSize + tileSize / 2,
+                tileSize / 2 - 1,
+                0,
+                Math.PI * 2
+            );
+            ctx.fill();
         } else if (index === snake.length - 1) {
             // Хвост
-            if (currentLevel === 1) {
-                ctx.fillStyle = '#4a76a8';
-                ctx.fillRect(
-                    segment.x * tileSize + 1,
-                    segment.y * tileSize + 1,
-                    tileSize - 2,
-                    tileSize - 2
-                );
-            } else {
-                // Определяем направление хвоста
-                let tailDir = direction;
-                if (index > 0) {
-                    const prevSegment = snake[index - 1];
-                    if (prevSegment.x < segment.x) tailDir = 'left';
-                    else if (prevSegment.x > segment.x) tailDir = 'right';
-                    else if (prevSegment.y < segment.y) tailDir = 'up';
-                    else if (prevSegment.y > segment.y) tailDir = 'down';
-                }
-                drawDragonTail(segment.x, segment.y, tailDir);
-            }
+            ctx.fillStyle = currentLevel === 1 ? '#4a76a8' : '#4a148c';
+            ctx.beginPath();
+            ctx.arc(
+                segment.x * tileSize + tileSize / 2,
+                segment.y * tileSize + tileSize / 2,
+                tileSize / 2 - 1,
+                0,
+                Math.PI * 2
+            );
+            ctx.fill();
         } else {
             // Тело
-            if (currentLevel === 1) {
-                ctx.fillStyle = '#4a76a8';
-                ctx.fillRect(
-                    segment.x * tileSize + 1,
-                    segment.y * tileSize + 1,
-                    tileSize - 2,
-                    tileSize - 2
-                );
-            } else {
-                drawDragonBody(segment.x, segment.y, index, snake.length);
-            }
+            ctx.fillStyle = currentLevel === 1 ? '#4a76a8' : `hsl(${(index * 10) % 360}, 80%, 50%)`;
+            ctx.beginPath();
+            ctx.arc(
+                segment.x * tileSize + tileSize / 2,
+                segment.y * tileSize + tileSize / 2,
+                tileSize / 2 - 1,
+                0,
+                Math.PI * 2
+            );
+            ctx.fill();
         }
     });
 
@@ -540,41 +236,6 @@ function draw() {
             Math.PI * 2
         );
         ctx.fill();
-
-        if (currentLevel === 2) {
-            // Детали еды для уровня 2
-            ctx.fillStyle = '#ff9900';
-            ctx.beginPath();
-            ctx.arc(
-                food.x * tileSize + tileSize / 2,
-                food.y * tileSize + tileSize / 2,
-                tileSize / 4,
-                0,
-                Math.PI * 2
-            );
-            ctx.fill();
-
-            ctx.fillStyle = '#ff6600';
-            ctx.beginPath();
-            ctx.arc(
-                food.x * tileSize + tileSize / 3,
-                food.y * tileSize + tileSize / 3,
-                tileSize / 8,
-                0,
-                Math.PI * 2
-            );
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.arc(
-                food.x * tileSize + 2 * tileSize / 3,
-                food.y * tileSize + 2 * tileSize / 3,
-                tileSize / 6,
-                0,
-                Math.PI * 2
-            );
-            ctx.fill();
-        }
     }
 
     // Анимация поедания
@@ -634,9 +295,6 @@ function update() {
             gameSpeed = 120;
             clearInterval(gameInterval);
             gameInterval = setInterval(gameLoop, gameSpeed);
-            pauseText.textContent = "Уровень 2! Вы превратились в дракона!";
-            togglePause();
-            setTimeout(togglePause, 2000);
         }
 
         if (score % 50 === 0 && gameSpeed > 50) {
@@ -677,7 +335,7 @@ function resetGame() {
     direction = 'right';
     nextDirection = 'right';
     score = 0;
-    currentLevel = Math.min(2, Math.max(1, parseInt(levelSelect.value) || 1));
+    currentLevel = parseInt(levelSelect.value) || 1;
     obstacles = [];
 
     if (currentLevel === 2) {
@@ -700,10 +358,6 @@ function togglePause() {
     
     isPaused = !isPaused;
     pauseOverlay.style.display = isPaused ? 'flex' : 'none';
-
-    if (!isPaused) {
-        pauseText.textContent = "Пауза";
-    }
 }
 
 // Обработка клавиатуры
@@ -738,7 +392,7 @@ function handleKeyDown(e) {
             break;
         case ' ':
         case 'Escape':
-            if (isGameRunning) togglePause();
+            togglePause();
             break;
     }
 }
@@ -775,7 +429,7 @@ function checkGamepad() {
     }
 
     // Кнопка A или START для паузы
-    if (isGameRunning && (gamepad.buttons[0]?.pressed || gamepad.buttons[9]?.pressed)) {
+    if (gamepad.buttons[0]?.pressed || gamepad.buttons[9]?.pressed) {
         togglePause();
     }
 }
@@ -834,21 +488,11 @@ document.addEventListener('keydown', handleKeyDown);
 window.addEventListener('gamepadconnected', (e) => {
     console.log('Gamepad connected:', e.gamepad.id);
     gamepadConnected = true;
-    if (currentControls === 'gamepad') {
-        pauseText.textContent = "Геймпад подключен!";
-        togglePause();
-        setTimeout(togglePause, 1500);
-    }
 });
 
 window.addEventListener('gamepaddisconnected', (e) => {
     console.log('Gamepad disconnected:', e.gamepad.id);
     gamepadConnected = false;
-    if (currentControls === 'gamepad') {
-        pauseText.textContent = "Геймпад отключен!";
-        togglePause();
-        setTimeout(togglePause, 1500);
-    }
 });
 
 controlsSelect.addEventListener('change', () => {
@@ -859,12 +503,6 @@ controlsSelect.addEventListener('change', () => {
     } else {
         removeMobileControls();
     }
-
-    if (currentControls === 'gamepad' && !gamepadConnected) {
-        pauseText.textContent = "Подключите геймпад!";
-        togglePause();
-        setTimeout(togglePause, 1500);
-    }
 });
 
 startButton.addEventListener('click', () => {
@@ -874,7 +512,6 @@ startButton.addEventListener('click', () => {
         isPaused = false;
         resetGame();
 
-        // Очищаем предыдущий интервал, если был
         if (gameInterval) {
             clearInterval(gameInterval);
         }
@@ -937,11 +574,10 @@ window.addEventListener('resize', resizeCanvas);
 draw();
 
 // Основной цикл
-function mainLoop(timestamp) {
+function mainLoop() {
     if (currentControls === 'gamepad') {
         checkGamepad();
     }
-
     requestAnimationFrame(mainLoop);
 }
 
