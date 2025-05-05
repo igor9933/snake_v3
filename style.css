@@ -74,6 +74,7 @@ select {
     margin-bottom: 30px;
     text-align: center;
     color: tomato;
+    font-weight: 600;
 }
 
 .hidden {
